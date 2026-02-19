@@ -8,6 +8,11 @@ description: >
 
 # Observability
 
+## Related Skills
+- **deployment-strategy:** Monitoring during rollout.
+- **failure-analysis:** Detecting failure modes.
+- **data-migration:** Tracking migration progress.
+
 ## Checklist
 
 - [ ] Key metrics identified (what numbers prove this works?)

@@ -8,6 +8,11 @@ description: >
 
 # Cross-Service Coordination
 
+## Related Skills
+- **api-contracts:** Contract versioning strategy.
+- **deployment-strategy:** Deployment ordering and rollback.
+- **failure-analysis:** Intermediate state safety.
+
 ## Checklist
 
 - [ ] All consuming services identified (contract dependency graph mapped)

@@ -8,6 +8,10 @@ description: >
 
 # Deployment Strategy
 
+## Related Skills
+- **observability:** Required for monitoring during rollout.
+- **failure-analysis:** For partial rollout and rollback scenarios.
+
 ## Checklist
 
 - [ ] Deployment strategy chosen and documented in spec
@@ -40,6 +44,19 @@ Update instances incrementally. Each batch verified before next.
 Deploy code everywhere, activate via flag for specific users/percentages.
 - **Use when:** Decoupling deploy from release, gradual rollout.
 - **Rollback:** Disable flag. Instant.
+
+## Verification
+
+```bash
+# Check canary error rate (example)
+curl -s "https://metrics/api/error_rate?service=api&version=canary" | jq '.rate'
+
+# Compare baseline vs canary metrics
+./scripts/compare_metrics.sh baseline canary
+
+# Health check
+curl -f https://api/health || echo "Health check failed"
+```
 
 ### Rollback triggers
 - Error rate > X% above baseline

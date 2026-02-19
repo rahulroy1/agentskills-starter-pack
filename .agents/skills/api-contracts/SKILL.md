@@ -8,6 +8,10 @@ description: >
 
 # API Contracts & Versioning
 
+## Related Skills
+- **migration-deprecation:** For contract changes with active consumers.
+- **cross-service-coordination:** When multiple services consume the contract.
+
 ## Checklist
 
 - [ ] Contract change documented (before/after diff)

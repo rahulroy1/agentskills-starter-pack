@@ -8,6 +8,11 @@ description: >
 
 # Data Migration
 
+## Related Skills
+- **failure-analysis:** Essential for intermediate state safety.
+- **observability:** Required for migration monitoring.
+- **infrastructure-changes:** For database and storage changes.
+
 ## Checklist
 
 ### Planning
@@ -51,6 +56,20 @@ description: >
 - Upserts instead of blind inserts
 - Track progress (last processed ID, checkpoint)
 - Re-running produces same result
+
+## Verification
+
+```bash
+# Check migration status (example: PostgreSQL)
+psql -c "SELECT * FROM schema_migrations ORDER BY applied_at DESC LIMIT 5;"
+
+# Verify row counts match
+psql -c "SELECT COUNT(*) FROM old_table;" 
+psql -c "SELECT COUNT(*) FROM new_table;"
+
+# Dry-run migration script
+python scripts/migrate_data.py --dry-run --limit 100
+```
 
 ## Anti-Patterns
 

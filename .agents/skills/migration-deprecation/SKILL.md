@@ -8,6 +8,12 @@ description: >
 
 # Migration & Deprecation
 
+## Related Skills
+- **deployment-strategy:** Use together for production rollouts.
+- **observability:** Required for monitoring migration progress.
+- **failure-analysis:** Essential for multi-step migrations.
+- **api-contracts:** For contract versioning and sunset policies.
+
 ## Checklist
 
 ### Pre-Migration

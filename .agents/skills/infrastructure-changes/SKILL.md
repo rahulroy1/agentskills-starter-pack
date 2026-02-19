@@ -8,6 +8,10 @@ description: >
 
 # Infrastructure Changes
 
+## Related Skills
+- **data-migration:** For database schema changes.
+- **deployment-strategy:** Environment promotion.
+
 ## Checklist
 
 - [ ] Change documented as IaC (not manual)
