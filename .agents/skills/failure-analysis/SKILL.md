@@ -8,6 +8,11 @@ description: >
 
 # Failure Mode Analysis
 
+## Related Skills
+- **data-migration:** For multi-step data migrations.
+- **deployment-strategy:** For partial rollout scenarios.
+- **production-readiness:** For cross-service coordination, observability, and infrastructure.
+
 ## Checklist
 
 - [ ] All intermediate states identified (system states during rollout)

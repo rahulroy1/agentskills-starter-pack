@@ -8,6 +8,12 @@ description: >
 
 # Migration & Deprecation
 
+## Related Skills
+- **deployment-strategy:** Use together for production rollouts.
+- **production-readiness:** Required for monitoring migration progress and cross-service coordination.
+- **failure-analysis:** Essential for multi-step migrations.
+- **api-contracts:** For contract versioning and sunset policies.
+
 ## Checklist
 
 ### Pre-Migration

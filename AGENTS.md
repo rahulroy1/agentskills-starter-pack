@@ -2,7 +2,14 @@
 
 This file defines **how** agents operate — process, workflow, and safety boundaries.
 
-Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file references them by name; the agent's skill discovery system handles activation.
+Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file references them by name.
+
+### Skill Activation Protocol
+1. **Discovery:** Agent scans `.agents/skills/*/SKILL.md` at session start.
+2. **Metadata load:** Read frontmatter (name, description) only — ~50 tokens per skill.
+3. **Activation triggers:** Tier 3 exploration (identify from §3 table); review phase (per lens §6); explicit reference in AGENTS.md.
+4. **Full load:** Read complete SKILL.md only when activated.
+5. **Missing skill:** Log warning, proceed with AGENTS.md guidance only.
 
 **Goal:** Maximize quality per unit time. Rigor where risk is high, speed where risk is low.
 
@@ -14,7 +21,7 @@ Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file ref
 
 When principles conflict, higher rank wins.
 
-1. **Security and safety** — Non-negotiable hard floor. All tiers, all times. → skill: `security-baseline`
+1. **Security and safety** — Non-negotiable hard floor. All tiers, all times. Activate: `security-baseline`
 2. **Correctness and contract integrity** — Outputs satisfy contracts. Tests pass. Deterministic stays deterministic.
 3. **Understand before building** — Explore, validate assumptions, spec, *then* implement.
 4. **Outcome over ceremony** — Lightest process that satisfies #1, #2, #3.
@@ -52,6 +59,18 @@ Consumers, downstream systems, or users depending on your output will be affecte
 | **Modulith** | Module boundary contract, shared event schemas, initialization order |
 | **Microservices** | Service API contract, shared schema evolution, cross-service migration, infra |
 
+### Tier Classification Decision Tree
+- **Q1:** Does this change observable behavior outside the repo? → YES: Tier 3.
+- **Q2:** Does this change a contract (API, schema, CLI output)? → YES: Tier 3.
+- **Q3:** Does this affect multiple modules/components? → YES: Tier 2. Else: Tier 1.
+
+| Scenario | Tier | Rationale |
+|----------|------|-----------|
+| Add optional API field | 3 | Contract change (even if backward compatible) |
+| Change internal error handling that affects error messages | 3 | Observable behavior change |
+| Refactor internal function, same inputs/outputs | 1 | No observable change |
+| Change shared utility used by 5 modules | 2 | Multiple modules affected |
+
 ### Reclassification
 If blast radius turns out larger than classified: **stop → reclassify → apply new tier rules.**
 
@@ -87,7 +106,7 @@ Depth scales with tier. Sequence is always: **understand → define success → 
   - Research alternatives and trade-offs.
   - Assess rollback feasibility.
   - Identify applicable skills (see below).
-- **Spec** — write and get **explicit user approval**:
+- **Spec** — write and get **explicit user approval** (see Tier 3 Spec Approval Protocol below):
   - **Goal** — problem and desired outcome.
   - **Approach** — chosen solution, alternatives rejected with rationale.
   - **Changes** — all files, modules, contracts, configs.
@@ -99,20 +118,27 @@ Depth scales with tier. Sequence is always: **understand → define success → 
   - **Applicable skill sections** — include relevant guidance from activated skills.
 - **Implement** per approved spec. Divergence → stop → update spec → re-approve.
 
+#### Tier 3 Spec Approval Protocol
+1. **Present spec** as markdown with clear sections (§3).
+2. **Request approval:** "Approve this spec? (yes/no/modify)"
+3. **Wait for response.** Do not proceed without explicit approval.
+4. **Partial approval:** If user requests changes → update spec → re-present → re-approve.
+5. **Approval record:** Log approval in `tasks/todo.md` with timestamp.
+
 #### Tier 3 — Skill-Based Conditional Sections
 
 Include in the spec when the change involves these concerns. Activate the relevant skill for detailed patterns and checklists.
 
-| Concern | When to include | Skill |
-|---------|----------------|-------|
-| Migration / deprecation | Changing a contract with active consumers | `migration-deprecation` |
-| Data migration | Schema, format, or storage changes | `data-migration` |
-| Cross-service coordination | Multiple services must update | `cross-service-coordination` |
-| Deployment strategy | Can't deploy atomically or carries prod risk | `deployment-strategy` |
-| Backward compatibility | Consumers can't all update simultaneously | `api-contracts` |
-| Infrastructure | DB, queues, networking, config changes | `infrastructure-changes` |
-| Observability | Production behavior needs monitoring | `observability` |
-| Failure mode analysis | Partial rollout, async, distributed changes | `failure-analysis` |
+| Concern | When to include | Skill | Phase |
+|---------|----------------|-------|-------|
+| Migration / deprecation | Changing a contract with active consumers | `migration-deprecation` | Exploration |
+| Data migration | Schema, format, or storage changes | `data-migration` | Exploration |
+| Cross-service coordination | Multiple services must update | `production-readiness` | Exploration |
+| Deployment strategy | Can't deploy atomically or carries prod risk | `deployment-strategy` | Spec |
+| Backward compatibility | Consumers can't all update simultaneously | `api-contracts` | Exploration |
+| Infrastructure | DB, queues, networking, config changes | `production-readiness` | Exploration |
+| Observability | Production behavior needs monitoring | `production-readiness` | Spec |
+| Failure mode analysis | Partial rollout, async, distributed changes | `failure-analysis` | Exploration |
 
 ### Spec is the source of truth
 Implementation is measured against the spec. Verification confirms acceptance criteria. Review checks conformance. Wrong spec → fix spec first, then code.
@@ -157,7 +183,7 @@ Seven review lenses:
 | 4 | Security | `security-baseline` |
 | 5 | Documentation | — |
 | 6 | Refactoring | `code-quality` |
-| 7 | Architecture | — |
+| 7 | Architecture | — (see Architecture Review Lens below) |
 
 ### Required per tier
 | Tier | Spec | Security | Code | Tests | Docs | Refactoring | Architecture |
@@ -170,6 +196,13 @@ For Tier 3, spawn a review subagent per lens (§7).
 
 **Findings:** Critical/High → fix or log approved debt with owner. Medium/Low → note and justify.
 
+### Architecture Review Lens
+- [ ] Change aligns with system architecture (monolith/modulith/microservices).
+- [ ] No new coupling introduced (circular dependencies, shared state).
+- [ ] Boundaries respected (module/service boundaries, data ownership).
+- [ ] Scalability impact assessed (bottlenecks, resource usage).
+- [ ] Technology choices justified (why this library/framework/pattern).
+
 ---
 
 ## 7) Subagent Strategy
@@ -177,6 +210,8 @@ For Tier 3, spawn a review subagent per lens (§7).
 Keep main context clean. Parallelize work. **Drive exploration before spec writing.**
 
 One task per subagent. Name descriptively.
+
+**Naming convention:** `[phase]-[scope]-[task]` (e.g. `explore-api-contracts-consumers`, `implement-user-service-layer`, `review-security-authn-authz`). Avoid generic names like `explore` or `fix-stuff`.
 
 | Phase | Tier 1 | Tier 2 | Tier 3 |
 |-------|--------|--------|--------|
@@ -193,8 +228,8 @@ Spawn before writing Tier 2/3 specs:
 - **Impact assessment:** What depends on this? What breaks if it changes?
 - **Alternatives research:** Compare approaches — trade-offs, cost, risk.
 - **Dependency check:** Version compatibility, breaking changes.
-- **Cross-system mapping** (Tier 3): Contract dependency graph. → skill: `cross-service-coordination`
-- **Failure mode analysis** (Tier 3): Unsafe intermediate states. → skill: `failure-analysis`
+- **Cross-system mapping** (Tier 3): Contract dependency graph. Activate: `production-readiness`
+- **Failure mode analysis** (Tier 3): Unsafe intermediate states. Activate: `failure-analysis`
 
 Synthesize findings in main thread → write spec from validated knowledge.
 
@@ -237,13 +272,26 @@ Respects §15 restricted operations.
 
 **Stuck:** Stop after 2 failed retries → re-assess approach → escalate to user after 3 attempts with what you tried and your hypothesis.
 
+**Escalation template:**
+```markdown
+## Escalation: [Task Name]
+**Attempts:** 3
+**Approach 1:** [What you tried, why it failed]
+**Approach 2:** [What you tried, why it failed]
+**Approach 3:** [What you tried, why it failed]
+**Current State:** [What's working, what's not]
+**Hypothesis:** [Your best guess at root cause]
+**Blockers:** [What's preventing progress]
+**Requested Help:** [Specific question or permission needed]
+```
+
 **Scope changed:** Stop → reclassify tier → update spec → present to user.
 
 ---
 
 ## 10) Security (Non-Negotiable — All Tiers)
 
-→ **Activate skill: `security-baseline` for full checklists and patterns.**
+Activate: `security-baseline` for full checklists and patterns.
 
 Hard rules (always apply):
 - Never hardcode, commit, log, or expose secrets.
@@ -259,7 +307,7 @@ Hard rules (always apply):
 
 ## 11) Policies
 
-**Migration/deprecation:** Same-change alignment across runtime, modules, tests, docs, contracts, commands, baselines. Remove deprecated paths once new is accepted. → skill: `migration-deprecation`
+**Migration/deprecation:** Same-change alignment across runtime, modules, tests, docs, contracts, commands, baselines. Remove deprecated paths once new is accepted. Activate: `migration-deprecation`
 
 **Cleanup/deletion:** Scope allowlist → preservation set → verify no collateral → execute. Never outside approved scope.
 
@@ -284,8 +332,24 @@ Hard rules (always apply):
 
 ## 13) Task Tracking
 
-- `tasks/todo.md` — specs, plans, completion state.
-- `tasks/lessons.md` — durable learning (§12).
+- `tasks/todo.md` — specs, plans, completion state. One section per task:
+  ```
+  ## [Task Title]
+  **Tier:** [1/2/3]  **Status:** [planned | in-progress | blocked | complete]  **Date:** YYYY-MM-DD
+  ### Spec
+  - Goal: [one sentence]
+  - Changes: [files/modules]
+  - Acceptance criteria: [numbered, testable]
+  ### Progress
+  - [ ] Exploration  - [ ] Implementation  - [ ] Verification
+  ```
+- `tasks/lessons.md` — durable learning (§12). One entry per lesson:
+  ```
+  ### [YYYY-MM-DD] - [Title]
+  **What went wrong:** [1 sentence]
+  **Why:** [root cause]
+  **Prevention:** [actionable rule]
+  ```
 
 Tier 2/3: track progress in `todo.md`.
 
@@ -326,7 +390,7 @@ Concise, factual. No filler.
 - [ ] Confirmed contained (Tier 1)
 - [ ] Implemented
 - [ ] Tests pass (add if none exist)
-- [ ] Security self-check → skill: `security-baseline`
+- [ ] Security self-check. Activate: `security-baseline`
 - [ ] No unintended changes
 - [ ] Summary: what, why, evidence
 
@@ -351,3 +415,15 @@ Concise, factual. No filler.
 - [ ] Runtime/tests/docs/contracts aligned
 - [ ] Design decisions updated
 - [ ] Final report: spec, evidence, risks, open items
+
+---
+
+## Appendix: Quick Reference
+
+| Task | Tier | Required Skills | Spec Approval? |
+|------|------|-----------------|----------------|
+| Fix typo in error message | 1 | security-baseline | No |
+| Add new API endpoint | 3 | api-contracts, security-baseline | Yes |
+| Refactor shared utility | 2 | code-quality | No |
+| Database schema change | 3 | data-migration, failure-analysis | Yes |
+| Deploy to production | 3 | deployment-strategy, production-readiness | Yes |

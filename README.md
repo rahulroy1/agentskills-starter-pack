@@ -54,10 +54,9 @@ your-repo/
     ├── migration-deprecation/SKILL.md
     ├── data-migration/SKILL.md
     ├── deployment-strategy/SKILL.md
-    ├── cross-service-coordination/SKILL.md
-    ├── infrastructure-changes/SKILL.md
-    ├── observability/SKILL.md
-    └── failure-analysis/SKILL.md
+    ├── production-readiness/SKILL.md
+    ├── failure-analysis/SKILL.md
+    └── performance-analysis/SKILL.md
 ```
 
 **One file → maturity → modularize.** Don't over-engineer day one.
@@ -125,25 +124,25 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 | **migration-deprecation** | Changing a contract with active consumers |
 | **data-migration** | Schema, format, or storage changes |
 | **deployment-strategy** | Can't deploy atomically or carries prod risk |
-| **cross-service-coordination** | Multiple services must update |
-| **infrastructure-changes** | DB, queues, networking, config changes |
-| **observability** | Production behavior needs monitoring |
+| **production-readiness** | Cross-service coordination, observability, infrastructure changes |
 | **failure-analysis** | Partial rollout, async, or distributed changes |
+| **performance-analysis** | Latency, throughput, or resource usage changes |
 
 ## Getting Started
 
 1. **Pick your starting point.** Single file (`AGENTS-single.md`) or modular (`AGENTS.md` + skills).
 2. **Copy into your repo root.** Include `tasks/` with empty `todo.md` and `lessons.md`.
 3. **Customize the Tier 3 triggers** for your architecture — the risk tier table works universally, but the architecture-specific triggers should reflect your system boundaries.
-4. **Trim skills you don't need.** Solo service with no migrations? Drop `cross-service-coordination` and `data-migration`. Add them back when complexity grows.
-5. **Start working.** Your AI coding agent reads `AGENTS.md` automatically, classifies risk, follows the workflow, and activates skills as needed.
-6. **Log lessons as you go.** When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits.
+4. **Trim skills you don't need.** Solo service with no migrations? Drop `production-readiness` and `data-migration`. Add them back when complexity grows.
+5. **Migrating from v6?** See `MIGRATION-v6-to-v8.md`.
+6. **Start working.** Your AI coding agent reads `AGENTS.md` automatically, classifies risk, follows the workflow, and activates skills as needed.
+7. **Log lessons as you go.** When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits. When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits.
 
 ## Comparison: Single File vs. Modular
 
 | | Single File (v6) | Modular + Skills (v8) |
 |---|---|---|
-| **Files** | 1 file + tasks/ | 1 file + tasks/ + 11 skills |
+| **Files** | 1 file + tasks/ | 1 file + tasks/ + 9 skills |
 | **Lines** | ~440 | ~350 (process) + skills load on demand |
 | **Domain knowledge** | Inlined | Extracted into `.agents/skills/` |
 | **Context cost** | Full cost upfront | ~50 tokens/skill at startup; full load only when activated |
