@@ -131,12 +131,12 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 ## Getting Started
 
 1. **Pick your starting point.** Single file (`AGENTS-single.md`) or modular (`AGENTS.md` + skills).
-2. **Copy into your repo root.** Include `tasks/` with empty `todo.md` and `lessons.md`.
+2. **Copy into your repo root.** Include `tasks/` with `todo.md` and `lessons.md` (both contain format templates).
 3. **Customize the Tier 3 triggers** for your architecture — the risk tier table works universally, but the architecture-specific triggers should reflect your system boundaries.
 4. **Trim skills you don't need.** Solo service with no migrations? Drop `production-readiness` and `data-migration`. Add them back when complexity grows.
 5. **Migrating from v6?** See `MIGRATION-v6-to-v8.md`.
 6. **Start working.** Your AI coding agent reads `AGENTS.md` automatically, classifies risk, follows the workflow, and activates skills as needed.
-7. **Log lessons as you go.** When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits. When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits.
+7. **Log lessons as you go.** When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits.
 
 ## Comparison: Single File vs. Modular
 
