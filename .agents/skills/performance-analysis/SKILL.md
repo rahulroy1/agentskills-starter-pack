@@ -8,7 +8,7 @@ description: >
 # Performance Analysis
 
 ## Related Skills
-- **observability:** Baseline metrics and monitoring.
+- **production-readiness:** Baseline metrics, monitoring, and alerting.
 - **testing-strategy:** Performance regression tests.
 
 ## Checklist

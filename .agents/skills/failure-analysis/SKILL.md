@@ -11,7 +11,7 @@ description: >
 ## Related Skills
 - **data-migration:** For multi-step data migrations.
 - **deployment-strategy:** For partial rollout scenarios.
-- **cross-service-coordination:** For distributed changes.
+- **production-readiness:** For cross-service coordination, observability, and infrastructure.
 
 ## Checklist
 

@@ -10,8 +10,7 @@ description: >
 
 ## Related Skills
 - **failure-analysis:** Essential for intermediate state safety.
-- **observability:** Required for migration monitoring.
-- **infrastructure-changes:** For database and storage changes.
+- **production-readiness:** Required for migration monitoring and infrastructure changes.
 
 ## Checklist
 

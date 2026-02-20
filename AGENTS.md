@@ -133,11 +133,11 @@ Include in the spec when the change involves these concerns. Activate the releva
 |---------|----------------|-------|-------|
 | Migration / deprecation | Changing a contract with active consumers | `migration-deprecation` | Exploration |
 | Data migration | Schema, format, or storage changes | `data-migration` | Exploration |
-| Cross-service coordination | Multiple services must update | `cross-service-coordination` | Exploration |
+| Cross-service coordination | Multiple services must update | `production-readiness` | Exploration |
 | Deployment strategy | Can't deploy atomically or carries prod risk | `deployment-strategy` | Spec |
 | Backward compatibility | Consumers can't all update simultaneously | `api-contracts` | Exploration |
-| Infrastructure | DB, queues, networking, config changes | `infrastructure-changes` | Exploration |
-| Observability | Production behavior needs monitoring | `observability` | Spec |
+| Infrastructure | DB, queues, networking, config changes | `production-readiness` | Exploration |
+| Observability | Production behavior needs monitoring | `production-readiness` | Spec |
 | Failure mode analysis | Partial rollout, async, distributed changes | `failure-analysis` | Exploration |
 
 ### Spec is the source of truth
@@ -228,7 +228,7 @@ Spawn before writing Tier 2/3 specs:
 - **Impact assessment:** What depends on this? What breaks if it changes?
 - **Alternatives research:** Compare approaches — trade-offs, cost, risk.
 - **Dependency check:** Version compatibility, breaking changes.
-- **Cross-system mapping** (Tier 3): Contract dependency graph. Activate: `cross-service-coordination`
+- **Cross-system mapping** (Tier 3): Contract dependency graph. Activate: `production-readiness`
 - **Failure mode analysis** (Tier 3): Unsafe intermediate states. Activate: `failure-analysis`
 
 Synthesize findings in main thread → write spec from validated knowledge.
@@ -332,8 +332,24 @@ Hard rules (always apply):
 
 ## 13) Task Tracking
 
-- `tasks/todo.md` — specs, plans, completion state.
-- `tasks/lessons.md` — durable learning (§12).
+- `tasks/todo.md` — specs, plans, completion state. One section per task:
+  ```
+  ## [Task Title]
+  **Tier:** [1/2/3]  **Status:** [planned | in-progress | blocked | complete]  **Date:** YYYY-MM-DD
+  ### Spec
+  - Goal: [one sentence]
+  - Changes: [files/modules]
+  - Acceptance criteria: [numbered, testable]
+  ### Progress
+  - [ ] Exploration  - [ ] Implementation  - [ ] Verification
+  ```
+- `tasks/lessons.md` — durable learning (§12). One entry per lesson:
+  ```
+  ### [YYYY-MM-DD] - [Title]
+  **What went wrong:** [1 sentence]
+  **Why:** [root cause]
+  **Prevention:** [actionable rule]
+  ```
 
 Tier 2/3: track progress in `todo.md`.
 
@@ -410,4 +426,4 @@ Concise, factual. No filler.
 | Add new API endpoint | 3 | api-contracts, security-baseline | Yes |
 | Refactor shared utility | 2 | code-quality | No |
 | Database schema change | 3 | data-migration, failure-analysis | Yes |
-| Deploy to production | 3 | deployment-strategy, observability | Yes |
+| Deploy to production | 3 | deployment-strategy, production-readiness | Yes |

@@ -10,6 +10,8 @@
 | Tier classification | Boundary test only | Added decision tree and examples |
 | Spec approval | "Explicit approval" | Spec approval protocol with steps |
 | Error escalation | Brief mention | Escalation template added |
+| Production skills | N/A | `cross-service-coordination`, `observability`, `infrastructure-changes` consolidated into `production-readiness` |
+| Task file format | Unstructured | Templates with defined schema in `tasks/todo.md` and `tasks/lessons.md` |
 
 ## Migration Steps
 

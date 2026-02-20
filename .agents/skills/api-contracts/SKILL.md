@@ -10,7 +10,7 @@ description: >
 
 ## Related Skills
 - **migration-deprecation:** For contract changes with active consumers.
-- **cross-service-coordination:** When multiple services consume the contract.
+- **production-readiness:** When multiple services consume the contract.
 
 ## Checklist
 

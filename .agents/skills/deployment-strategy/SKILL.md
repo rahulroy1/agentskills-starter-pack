@@ -9,7 +9,7 @@ description: >
 # Deployment Strategy
 
 ## Related Skills
-- **observability:** Required for monitoring during rollout.
+- **production-readiness:** Required for monitoring during rollout and cross-service coordination.
 - **failure-analysis:** For partial rollout and rollback scenarios.
 
 ## Checklist
