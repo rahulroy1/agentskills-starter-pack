@@ -139,6 +139,8 @@ Include in the spec when the change involves these concerns. Activate the releva
 | Infrastructure | DB, queues, networking, config changes | `production-readiness` | Exploration |
 | Observability | Production behavior needs monitoring | `production-readiness` | Spec |
 | Failure mode analysis | Partial rollout, async, distributed changes | `failure-analysis` | Exploration |
+| LLM in the workflow | System invokes LLM as a processing step | `llm-integration` | Exploration |
+| Audit and provenance | Outputs must be auditable, or agents and humans both modify artifacts | `audit-trail` | Spec |
 
 ### Spec is the source of truth
 Implementation is measured against the spec. Verification confirms acceptance criteria. Review checks conformance. Wrong spec → fix spec first, then code.
@@ -152,6 +154,7 @@ Implementation is measured against the spec. Verification confirms acceptance cr
 3. Simple and readable over clever.
 4. Never expose secrets in code, logs, tests, prompts, or output.
 5. Never perform destructive operations without explicit user confirmation.
+6. Verify write scope before writing. Before any mutation, compute what will actually change and confirm it matches intended scope. Unintended side effects are the #1 source of silent data corruption.
 
 ---
 
@@ -166,6 +169,8 @@ Verify against the spec's acceptance criteria. Evidence required: commands, resu
 | 3 | Tier 2 + full regression + gate reports + conditional skill verifications |
 
 For deterministic pipelines: before/after artifact diff checks.
+
+**Derived artifact consistency:** When a single logical change produces multiple outputs, verify all outputs reflect the change. Agents naturally focus on the primary artifact and forget derivatives.
 
 **No tests exist?** Tier 1: add targeted test or document why with manual evidence. Tier 2/3: add tests — untested changes are not complete.
 

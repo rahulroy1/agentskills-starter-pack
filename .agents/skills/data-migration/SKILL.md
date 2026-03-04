@@ -70,6 +70,13 @@ psql -c "SELECT COUNT(*) FROM new_table;"
 python scripts/migrate_data.py --dry-run --limit 100
 ```
 
+### Long-running operation resilience
+Any operation that can be interrupted will be interrupted. Build for it:
+- Persist progress to checkpoint (which units are done, which remain)
+- On resume, skip completed work and validate checkpoint integrity
+- Fail fast on invalid or empty input scope — never let an interrupted run produce partial output that overwrites good data
+- Idempotent stages: re-running a completed stage produces the same result
+
 ## Anti-Patterns
 
 - **DROP COLUMN in same deploy** — old code can't find it on rollback.
@@ -77,3 +84,4 @@ python scripts/migrate_data.py --dry-run --limit 100
 - **No dry run** — 10 rows local ≠ 10M rows production.
 - **No data validation** — always verify counts and checksums.
 - **Assuming fast** — estimate from volume. Plan for 10x longer.
+- **No checkpoint** — long-running operations without resume capability restart from scratch on every interruption.

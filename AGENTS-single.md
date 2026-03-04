@@ -150,6 +150,7 @@ Conditional sections — include when applicable:
 3. Prefer simple, explicit, readable solutions over clever ones.
 4. Never expose secrets in code, logs, tests, prompts, or output.
 5. Never perform destructive operations (delete files, drop data, remove config) without explicit user confirmation.
+6. Verify write scope before writing. Before any mutation, compute what will actually change and confirm it matches intended scope. Unintended side effects are the #1 source of silent data corruption.
 
 ---
 
@@ -167,6 +168,7 @@ Verify against the spec's acceptance criteria. Every change must include evidenc
 ### Tier 3
 - Tier 2 + full regression suite and required gate reports.
 - For deterministic pipelines: before/after artifact diff checks.
+- **Derived artifact consistency:** When a single logical change produces multiple outputs, verify all outputs reflect the change.
 - Walk through every acceptance criterion with evidence.
 - If conditional spec sections apply: verify each (migration tested, deployment strategy validated, rollback tested, observability confirmed).
 

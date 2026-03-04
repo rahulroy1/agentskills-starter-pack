@@ -49,9 +49,16 @@ description: >
 - Tier 1: Add at least one targeted test. If not feasible, document why.
 - Tier 2/3: Tests required. No exceptions.
 
+### Trace verification
+When outputs derive from sources, test the traceability:
+- Every output value should trace back to a source input with evidence
+- Test that derived artifacts are consistent with each other (if you produce two representations of the same data, they must agree)
+- Regression diff: compare before/after with explicit change counts — not just "tests pass"
+
 ## Anti-Patterns
 
 - **Testing implementation** — test outputs, not method calls.
 - **Giant fixtures** — 50 lines setup, 1 line assertion → break it down.
 - **Flaky tests ignored** — a flaky test is a bug. Fix or remove.
 - **Coverage as a goal** — 100% bad tests < 60% good tests.
+- **Shape-only validation** — verifying output structure without checking that values trace to their source. Structurally correct but semantically wrong is the hardest bug to find.

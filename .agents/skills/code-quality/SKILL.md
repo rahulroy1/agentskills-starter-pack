@@ -48,9 +48,16 @@ description: >
 - Variables: noun phrases (`userCount`, `activeConnections`)
 - Booleans: question form (`isValid`, `hasPermission`)
 
+### Output Determinism
+When same inputs must produce same outputs:
+- Use content-derived identifiers over random IDs
+- Preserve source encounter order — don't sort by convenience
+- Parallelize work, but merge results in deterministic order (source order, not completion order)
+
 ## Anti-Patterns
 
 - **Premature abstraction** — don't extract until you see the pattern 3 times.
 - **Clever code** — if it needs a comment to explain *what* it does, rewrite it.
 - **Over-engineering** — don't build for extensibility you don't need.
 - **Drive-by refactoring** — don't refactor unrelated code in the same changeset.
+- **Non-deterministic output** — random IDs, completion-order merges, or unstable sorts that make diffing between runs impossible.
