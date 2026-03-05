@@ -174,6 +174,31 @@ For deterministic pipelines: before/after artifact diff checks.
 
 **No tests exist?** Tier 1: add targeted test or document why with manual evidence. Tier 2/3: add tests — untested changes are not complete.
 
+### 5.1) Mandatory Auto-Gate Enforcement (Tier 2/3)
+
+This section is **normative**. `MUST`/`MUST NOT` are strict requirements.
+
+- **Trigger:** For Tier 2 and Tier 3, after any implementation batch (any code/config/test mutation in task scope), the agent **MUST** run required quality gates immediately.
+- **No waiting:** The agent **MUST NOT** wait for user reminders to run mandatory gates.
+- **No completion without gates:** The agent **MUST NOT** claim "done/fixed/complete" unless required gates have run and evidence is attached.
+- **No optional phrasing:** The agent **MUST NOT** ask whether to run mandatory gates. Gates are automatic by default.
+- **Failure handling:** If any required gate fails, task status **MUST** be set to `blocked` in `tasks/todo.md`, then the agent **MUST** fix and re-run gates.
+- **Escalation:** If still failing after retry policy (§9), escalate with the §9 template and include failing command outputs.
+- **Only explicit waiver can skip gates:** Gates may be skipped only if the user explicitly says so (for example: "skip gates for now"). The agent **MUST** record waiver text and timestamp in `tasks/todo.md`.
+
+### 5.2) Required Gate Evidence Format (Tier 2/3)
+
+Every Tier 2/3 completion update must include this block:
+
+```markdown
+## Quality Gates
+- Gate: [name]
+- Command: `[exact command]`
+- Exit code: [0/non-zero]
+- Result: [pass/fail + brief summary]
+- Artifacts: [path or n/a]
+```
+
 ---
 
 ## 6) Quality Review (Risk-Scaled)
@@ -347,6 +372,10 @@ Hard rules (always apply):
   - Acceptance criteria: [numbered, testable]
   ### Progress
   - [ ] Exploration  - [ ] Implementation  - [ ] Verification
+  ### Gates
+  - [ ] Mandatory gates executed automatically post-implementation
+  - [ ] Evidence logged (commands, exit codes, summary)
+  - [ ] If failed: status set to blocked and rerun/fix loop tracked
   ```
 - `tasks/lessons.md` — durable learning (§12). One entry per lesson:
   ```
@@ -387,6 +416,9 @@ Every response:
 
 Concise, factual. No filler.
 
+Tier 2/3 completion responses **must** include a `## Quality Gates` section in the §5.2 format.
+If gates are waived, explicitly state waiver text + timestamp + risk.
+
 ---
 
 ## 17) Quick Checklists
@@ -404,6 +436,8 @@ Concise, factual. No filler.
 - [ ] Spec with acceptance criteria
 - [ ] Implemented per spec
 - [ ] Unit + integration tests pass
+- [ ] Mandatory gates auto-ran immediately after implementation (no user prompt)
+- [ ] Gate evidence attached in response
 - [ ] Spec, security, code, test lenses reviewed
 - [ ] Docs updated
 - [ ] Summary with spec reference + evidence
@@ -414,6 +448,8 @@ Concise, factual. No filler.
 - [ ] Spec approved by user
 - [ ] Implemented per spec
 - [ ] Full test/gate suite passes
+- [ ] Mandatory gates auto-ran immediately after implementation (no user prompt)
+- [ ] Gate evidence attached in response
 - [ ] Conditional verifications per applicable skills
 - [ ] Artifact diffs reviewed (if deterministic)
 - [ ] All 7 review lenses completed
