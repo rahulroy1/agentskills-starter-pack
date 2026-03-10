@@ -141,6 +141,7 @@ Include in the spec when the change involves these concerns. Activate the releva
 | Failure mode analysis | Partial rollout, async, distributed changes | `failure-analysis` | Exploration |
 | LLM in the workflow | System invokes LLM as a processing step | `llm-integration` | Exploration |
 | Audit and provenance | Outputs must be auditable, or agents and humans both modify artifacts | `audit-trail` | Spec |
+| Frontend / UI architecture | Component design, state management, layout, editor integration, real-time UI | `ui-engineering` | Exploration |
 
 ### Spec is the source of truth
 Implementation is measured against the spec. Verification confirms acceptance criteria. Review checks conformance. Wrong spec → fix spec first, then code.
@@ -214,13 +215,14 @@ Seven review lenses:
 | 5 | Documentation | — |
 | 6 | Refactoring | `code-quality` |
 | 7 | Architecture | — (see Architecture Review Lens below) |
+| 8 | UI / Frontend | `ui-engineering` |
 
 ### Required per tier
-| Tier | Spec | Security | Code | Tests | Docs | Refactoring | Architecture |
-|------|------|----------|------|-------|------|-------------|--------------|
-| 1 | — | Required | Optional | Optional | Optional | Optional | — |
-| 2 | Required | Required | Required | Required | If affected | Optional | — |
-| 3 | Required | Required | Required | Required | Required | Required | Required |
+| Tier | Spec | Security | Code | Tests | Docs | Refactoring | Architecture | UI |
+|------|------|----------|------|-------|------|-------------|--------------|-----|
+| 1 | — | Required | Optional | Optional | Optional | Optional | — | — |
+| 2 | Required | Required | Required | Required | If affected | Optional | — | If frontend |
+| 3 | Required | Required | Required | Required | Required | Required | Required | If frontend |
 
 For Tier 3, spawn a review subagent per lens (§7).
 
@@ -468,3 +470,5 @@ If gates are waived, explicitly state waiver text + timestamp + risk.
 | Refactor shared utility | 2 | code-quality | No |
 | Database schema change | 3 | data-migration, failure-analysis | Yes |
 | Deploy to production | 3 | deployment-strategy, production-readiness | Yes |
+| Add IDE panel with CodeMirror | 2 | ui-engineering, code-quality | No |
+| New frontend flow with routing + state | 3 | ui-engineering, security-baseline | Yes |
