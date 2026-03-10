@@ -56,7 +56,10 @@ your-repo/
     ├── deployment-strategy/SKILL.md
     ├── production-readiness/SKILL.md
     ├── failure-analysis/SKILL.md
-    └── performance-analysis/SKILL.md
+    ├── performance-analysis/SKILL.md
+    ├── llm-integration/SKILL.md
+    ├── audit-trail/SKILL.md
+    └── ui-engineering/SKILL.md
 ```
 
 **One file → maturity → modularize.** Don't over-engineer day one.
@@ -127,6 +130,9 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 | **production-readiness** | Cross-service coordination, observability, infrastructure changes |
 | **failure-analysis** | Partial rollout, async, or distributed changes |
 | **performance-analysis** | Latency, throughput, or resource usage changes |
+| **llm-integration** | System invokes LLM as a processing step |
+| **audit-trail** | Outputs must be auditable, or agents and humans both modify artifacts |
+| **ui-engineering** | Frontend/UI changes: component design, state management, layout, editor integration |
 
 ## Getting Started
 
@@ -142,7 +148,7 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 
 | | Single File (v6) | Modular + Skills (v8) |
 |---|---|---|
-| **Files** | 1 file + tasks/ | 1 file + tasks/ + 9 skills |
+| **Files** | 1 file + tasks/ | 1 file + tasks/ + 13 skills |
 | **Lines** | ~440 | ~350 (process) + skills load on demand |
 | **Domain knowledge** | Inlined | Extracted into `.agents/skills/` |
 | **Context cost** | Full cost upfront | ~50 tokens/skill at startup; full load only when activated |
