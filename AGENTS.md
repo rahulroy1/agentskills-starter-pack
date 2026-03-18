@@ -106,6 +106,7 @@ Depth scales with tier. Sequence is always: **understand → define success → 
   - Research alternatives and trade-offs.
   - Assess rollback feasibility.
   - Identify applicable skills (see below).
+  - **Validate findings before spec:** After exploration produces a gap or recommendation list, re-evaluate each item against the actual execution path — not the abstract design. For each finding, ask: "If I remove this recommendation, does the end-to-end outcome change?" If not, it is an optimization or diagnostic, not a spec-worthy gap. This prevents over-recommending and keeps specs focused on architecturally load-bearing changes.
 - **Spec** — write and get **explicit user approval** (see Tier 3 Spec Approval Protocol below):
   - **Goal** — problem and desired outcome.
   - **Approach** — chosen solution, alternatives rejected with rationale.
@@ -142,7 +143,6 @@ Include in the spec when the change involves these concerns. Activate the releva
 | LLM in the workflow | System invokes LLM as a processing step | `llm-integration` | Exploration |
 | Audit and provenance | Outputs must be auditable, or agents and humans both modify artifacts | `audit-trail` | Spec |
 | Frontend / UI architecture | Component design, state management, layout, editor integration, real-time UI | `ui-engineering` | Exploration |
-
 ### Spec is the source of truth
 Implementation is measured against the spec. Verification confirms acceptance criteria. Review checks conformance. Wrong spec → fix spec first, then code.
 
@@ -277,24 +277,68 @@ One per lens (§6). Returns: findings, severity, locations, reasoning, suggested
 
 **Fix it.** Don't ask for repro steps, which file, or permission. If report is too vague, ask **one** question about *what* is broken.
 
-Respects §15 restricted operations.
+Respects §15 restricted operations. Activate: `testing-strategy` (Bug Fix Protocol section).
+
+### Sequence (strict order — no skipping)
 
 1. **Explore** — trace behavior, errors, logs, code. Subagents for complex cases.
-2. **Reproduce** — write failing test or isolate minimum case.
-3. **Diagnose** — root cause, not symptoms.
-4. **Classify** — tier the *fix*. Tier 3 fix → spec + approval.
-5. **Spec** — Tier 2/3 per §3. Tier 1: state change and rationale.
-6. **Fix** — root cause, edge cases.
-7. **Verify** — repro test passes, all tests pass, no regressions.
-8. **Prevent** — regression test, docs, check for similar issues.
+2. **Diagnose** — root cause, not symptoms.
+3. **Classify** — tier the *fix*. Tier 3 fix → spec + approval.
+4. **Spec** — Tier 2/3 per §3. Tier 1: state change and rationale.
+5. **Write reproducer tests FIRST** — before touching any production code:
+   - Write new test(s) that **reproduce the exact bug** (they must FAIL on the current code).
+   - Run them and confirm they fail. This is the proof the bug exists.
+   - If the bug cannot be reproduced with a test, document why and provide manual evidence.
+6. **Run existing test suite** — capture baseline. All existing tests must pass before the fix.
+7. **Fix** — root cause, edge cases. Change production code only.
+8. **Verify (3-gate check):**
+   - **Gate A: New reproducer tests pass** — the bug is fixed.
+   - **Gate B: Existing tests pass** — no regressions introduced.
+   - **Gate C: If existing tests fail**, classify the failure:
+     - **Test was wrong** (tested buggy behavior as correct) → update the test. Document what changed and why.
+     - **Fix broke a working feature** → **STOP. Do not proceed.** Flag to user with details:
+       ```
+       ⚠ REGRESSION DETECTED
+       Test: [test name]
+       Expected: [what the test asserts]
+       Actual: [what now happens]
+       Reason: [why the fix causes this]
+       Action needed: [user decision required]
+       ```
+     - **Feature design changed** (the fix intentionally alters behavior) → update the test to match the new design. Document the design change in the spec and explain why old behavior was incorrect.
+9. **Prevent** — regression test (the reproducer from step 5 is now the permanent regression test), docs, check for similar issues elsewhere.
+
+### Decision Tree for Failing Existing Tests After Fix
+
+```
+Existing test fails after fix
+  │
+  ├─ Was the test asserting buggy behavior?
+  │   └─ YES → Update test. Document: "Test was validating the bug, not correct behavior."
+  │
+  ├─ Does the fix intentionally change feature behavior/design?
+  │   └─ YES → Update test. Document the design change in spec.
+  │            This requires Tier 2+ classification (behavior change = contract change).
+  │
+  └─ Is the fix breaking an unrelated working feature?
+      └─ YES → STOP. Flag regression to user. Do not merge.
+```
+
+### Bug Fix Report Template
 
 ```markdown
 ## Bug Fix: [Brief Description]
 **Tier:** [1/2/3]
 **Issue:** [What was broken]
 **Root Cause:** [Why]
+**Reproducer Tests:** [test file:test names — written before fix]
 **Fix:** [What changed and why]
-**Verification:** [Commands, evidence]
+**Existing Tests Updated:** [list with reason, or "none"]
+**Regressions:** [none / flagged — details]
+**Verification:**
+- Gate A (reproducer passes): [command + result]
+- Gate B (existing tests pass): [command + result]
+- Gate C (test updates): [list or n/a]
 **Files Changed:** [list]
 ```
 
@@ -470,5 +514,4 @@ If gates are waived, explicitly state waiver text + timestamp + risk.
 | Refactor shared utility | 2 | code-quality | No |
 | Database schema change | 3 | data-migration, failure-analysis | Yes |
 | Deploy to production | 3 | deployment-strategy, production-readiness | Yes |
-| Add IDE panel with CodeMirror | 2 | ui-engineering, code-quality | No |
 | New frontend flow with routing + state | 3 | ui-engineering, security-baseline | Yes |
