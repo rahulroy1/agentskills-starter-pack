@@ -22,21 +22,7 @@ Five structural gaps account for most agent-related rework:
 
 ## What's In This Repo
 
-Two options depending on where you are in your journey:
-
-### Option A: Single File (Start Here)
-
-`AGENTS-single.md` — A self-contained v6 file (~440 lines) with all process rules and domain knowledge inlined. No dependencies, no skill system. Copy it into your repo as `AGENTS.md` and you're running.
-
-```
-your-repo/
-├── AGENTS.md          # Rename from AGENTS-single.md
-└── tasks/
-    ├── todo.md        # Specs, plans, completion state
-    └── lessons.md     # Cross-session memory
-```
-
-### Option B: Modular with Agent Skills (When One File Outgrows Itself)
+### Modular with Agent Skills (When One File Outgrows Itself)
 
 `AGENTS.md` — A lean v8 process layer (~350 lines) that references [Agent Skills](https://agentskills.io) by name. Domain knowledge lives in `.agents/skills/` and loads on demand — dozens of skills available, zero context cost until the task activates them.
 
