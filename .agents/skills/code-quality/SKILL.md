@@ -1,9 +1,9 @@
 ---
 name: code-quality
 description: >
-  Reviews code for design quality, clarity, duplication, naming, error handling, and
-  refactoring opportunities. Use during Tier 2/3 code quality and refactoring review
-  lenses, or when evaluating implementation quality.
+  Review code for design quality, clarity, duplication, naming, error handling, and
+  refactoring opportunities. Activate during Tier 2/3 code quality and refactoring
+  review lenses, or when evaluating implementation quality.
 ---
 
 # Code Quality & Refactoring
@@ -35,18 +35,14 @@ description: >
 - [ ] No magic numbers or strings — named constants
 - [ ] Consistent formatting with project conventions
 
+## Gotchas
+
+- Extracting a helper after seeing it twice is premature — wait for 3 occurrences. The third reveals the real abstraction.
+- Boolean parameters (`process(data, verbose=True)`) almost always mean the function does two things. Split it.
+- "Self-documenting code" doesn't excuse missing *why* comments on business rules. `if balance < 0` is clear; *why* negative balances are allowed is not.
+- Parallelized work merged in completion order produces non-deterministic output. Always merge in source encounter order.
+
 ## Patterns
-
-### Extract when you see
-- Function doing two things → split
-- Repeated if/else chains → strategy pattern or lookup table
-- Long parameter lists → parameter object
-- Nested callbacks → extract named functions
-
-### Naming
-- Functions: verb phrases (`calculateTotal`, `validateInput`)
-- Variables: noun phrases (`userCount`, `activeConnections`)
-- Booleans: question form (`isValid`, `hasPermission`)
 
 ### Output Determinism
 When same inputs must produce same outputs:
@@ -58,6 +54,5 @@ When same inputs must produce same outputs:
 
 - **Premature abstraction** — don't extract until you see the pattern 3 times.
 - **Clever code** — if it needs a comment to explain *what* it does, rewrite it.
-- **Over-engineering** — don't build for extensibility you don't need.
 - **Drive-by refactoring** — don't refactor unrelated code in the same changeset.
 - **Non-deterministic output** — random IDs, completion-order merges, or unstable sorts that make diffing between runs impossible.

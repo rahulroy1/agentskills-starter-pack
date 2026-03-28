@@ -1,9 +1,9 @@
 ---
 name: testing-strategy
 description: >
-  Guides test coverage, test quality, and edge case identification. Use during Tier 2/3
-  test coverage review lens, when writing specs that define test strategy, or when
-  adding tests to code with no existing coverage.
+  Verify test coverage, test quality, and edge case identification. Activate during
+  Tier 2/3 test coverage review lens, when writing specs that define test strategy,
+  or when adding tests to code with no existing coverage.
 ---
 
 # Testing Strategy
@@ -30,20 +30,15 @@ description: >
 - [ ] Test data explicit in the test — no hidden fixtures
 - [ ] Mocks only at boundaries (external services, I/O)
 
+## Gotchas
+
+- Mocking the database hides schema drift — if your tests mock DB calls, a column rename or migration can pass tests but break production. Use a real test database for integration tests.
+- `assert result is not None` proves nothing. Test that the *value* traces to the source, not just that it exists.
+- Flaky tests that "pass on retry" mask real race conditions. Fix or delete — never ignore.
+- Time-dependent tests that pass locally fail in CI if the timezone differs. Always use UTC or freeze time.
+- Tests that share mutable state via class variables or module globals produce order-dependent results that only fail when run in isolation.
+
 ## Patterns
-
-### Edge cases to always consider
-- Empty string, empty list, empty object
-- Null / None / undefined
-- Zero, negative, MAX_INT
-- Single element vs many
-- Unicode, special characters, very long strings
-- Concurrent access (if applicable)
-- Time zones, DST (if date-related)
-
-### Mock vs test directly
-- **Mock:** External APIs, databases, file systems, network, clocks
-- **Don't mock:** Business logic, data transformations, validation, pure functions
 
 ### When tests don't exist
 - Tier 1: Add at least one targeted test. If not feasible, document why.
@@ -52,13 +47,20 @@ description: >
 ### Trace verification
 When outputs derive from sources, test the traceability:
 - Every output value should trace back to a source input with evidence
-- Test that derived artifacts are consistent with each other (if you produce two representations of the same data, they must agree)
+- Test that derived artifacts are consistent with each other
 - Regression diff: compare before/after with explicit change counts — not just "tests pass"
+
+## Validation Loop
+
+After writing tests:
+1. Run the test suite — confirm new tests pass
+2. Intentionally break the code the tests cover — confirm they fail
+3. If a test still passes on broken code, it's testing structure not behavior. Rewrite.
+4. Restore the code and re-run to confirm green
 
 ## Anti-Patterns
 
 - **Testing implementation** — test outputs, not method calls.
 - **Giant fixtures** — 50 lines setup, 1 line assertion → break it down.
-- **Flaky tests ignored** — a flaky test is a bug. Fix or remove.
 - **Coverage as a goal** — 100% bad tests < 60% good tests.
 - **Shape-only validation** — verifying output structure without checking that values trace to their source. Structurally correct but semantically wrong is the hardest bug to find.

@@ -1,15 +1,11 @@
 ---
 name: production-readiness
 description: >
-  Guides production-impacting changes: cross-service coordination, observability
+  Verify production readiness for cross-service coordination, observability
   (metrics, alerting, logging), and infrastructure modifications (IaC, databases,
-  networking). Use for Tier 3 changes requiring multi-service deployment ordering,
-  production monitoring, or infrastructure provisioning.
-activation-triggers:
-  - "Tier 3 change requiring multiple services to update"
-  - "Change affecting production behavior that needs monitoring"
-  - "Infrastructure change (DB, queues, networking, IaC)"
-related-skills: [deployment-strategy, failure-analysis, data-migration]
+  networking). Activate for Tier 3 changes requiring multi-service deployment
+  ordering, production monitoring, infrastructure provisioning, or any change
+  affecting production behavior that needs observability.
 ---
 
 # Production Readiness
@@ -19,6 +15,14 @@ related-skills: [deployment-strategy, failure-analysis, data-migration]
 - **failure-analysis:** Intermediate state safety and partial failure scenarios.
 - **data-migration:** Database schema changes and backfill strategies.
 - **api-contracts:** Contract versioning when multiple services consume an API.
+
+## Gotchas
+
+- `/health` returning 200 when the database is down is the #1 false-positive in canary checks. Use `/ready` or deep health checks that verify all dependencies.
+- "Producer first" deployment only works if the new producer is backward compatible. If the new producer changes response shape, existing consumers break immediately.
+- Alert thresholds set from guesses instead of baselines fire constantly or never. Capture baselines before every deploy.
+- Structured logging doesn't exempt you from security rules — `log.info(request)` can dump auth tokens and PII.
+- IaC `plan` output that says "3 resources will be destroyed" is easy to dismiss. Always review plan output line by line.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: security-baseline
 description: >
-  Applies security checks to every code change at all risk tiers. Covers secrets management,
+  Apply security checks to every code change at all risk tiers. Covers secrets management,
   input validation, injection prevention, authentication and authorization, cryptography,
   error and log hygiene, and dependency security. Use for any code review, implementation,
   or verification task.
@@ -68,27 +68,35 @@ description: >
 - [ ] CORS scoped to specific origins — not `*`
 - [ ] Timeouts on all external calls
 
+## Gotchas
+
+- `.env` files committed to git are the #1 secret leak. Check `.gitignore` covers `.env*` before every commit.
+- `os.environ.get("KEY", "")` silently returns empty string — app runs but fails mysteriously at runtime. Always fail fast on missing secrets.
+- ORM `.raw()` / `.extra()` methods bypass parameterization. Treat them as hand-written SQL.
+- `CORS: *` in dev often ships to prod. Set explicit origins from the start.
+- `console.log(response)` in debugging can dump auth tokens. Structured logging with field allowlists prevents this.
+- Framework auto-escaping is template-engine-specific — it won't protect `dangerouslySetInnerHTML`, `| safe`, or raw SQL.
+
 ## Patterns
 
 ### Secret loading
 ```python
-# Good: Fail fast
-api_key = os.environ.get("API_KEY")
-if not api_key:
-    raise ConfigError("API_KEY required")
-
-# Bad: Silent fallback
-api_key = os.environ.get("API_KEY", "")
+# Fail fast — don't silently degrade
+api_key = os.environ["API_KEY"]  # KeyError if missing
 ```
 
 ### Parameterized queries
 ```python
-# Good
 db.execute("SELECT * FROM users WHERE id = ?", [user_id])
-
-# Bad
-db.execute(f"SELECT * FROM users WHERE id = {user_id}")
+# NOT: f"SELECT * FROM users WHERE id = {user_id}"
 ```
+
+## Validation Loop
+
+After implementing security-related code:
+1. Search the diff for common leak patterns: `grep -E '(password|secret|token|api.key)' --include='*.py'`
+2. Verify no new endpoints lack auth middleware
+3. If issues found, fix and re-check until clean
 
 ## Anti-Patterns
 
@@ -96,4 +104,3 @@ db.execute(f"SELECT * FROM users WHERE id = {user_id}")
 - **"The frontend validates"** — frontends can be bypassed. Always re-validate server-side.
 - **"It's just dev"** — dev secrets leak. Treat seriously.
 - **"We'll add security later"** — security debt compounds. Build it in.
-- **"The framework handles it"** — verify the defaults match your threat model.

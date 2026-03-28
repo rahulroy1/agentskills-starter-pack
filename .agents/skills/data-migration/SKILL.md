@@ -1,8 +1,8 @@
 ---
 name: data-migration
 description: >
-  Guides database schema changes, data format changes, storage restructuring, and
-  backfill strategies. Use for Tier 3 changes involving schema changes, data
+  Plan database schema changes, data format changes, storage restructuring, and
+  backfill strategies. Activate for Tier 3 changes involving schema changes, data
   transformations, or storage migrations that require rollback-for-data planning.
 ---
 
@@ -36,52 +36,45 @@ description: >
 - [ ] Compatibility shims removed from code
 - [ ] Monitoring confirms normal operation
 
+## Gotchas
+
+- `DROP COLUMN` in the same deploy as the code change means rollback restores code that references a column that no longer exists. Always separate schema removal from code changes by at least one deploy cycle.
+- A migration that takes 5 seconds on 1,000 rows may take 8 hours on 10M rows. Estimate from production volume, not dev. Plan for 10x longer than estimated.
+- `BEGIN; ... millions of rows ... COMMIT;` holds locks for the entire duration. Batch in chunks of 1,000–10,000 rows with commits between.
+- A migration without a checkpoint restarts from scratch on every interruption. Track last processed ID.
+
 ## Patterns
 
-### Online migration (zero downtime)
+### Default: Expand-Contract (zero downtime)
 1. **Expand:** Add new columns/tables alongside old. Write to both.
 2. **Backfill:** Migrate existing data old → new.
 3. **Validate:** Checksums, counts confirm match.
 4. **Switch:** Read from new, stop writing to old.
 5. **Contract:** Remove old after confirmation period.
 
-### Rollback-for-data
-- Keep old columns/tables during transition
-- Write reverse migration script if data was transformed
-- Track what data was written by new vs old code
-- Point-in-time backup for catastrophic scenarios
-
-### Idempotent migrations
-- Upserts instead of blind inserts
-- Track progress (last processed ID, checkpoint)
-- Re-running produces same result
-
-## Verification
-
-```bash
-# Check migration status (example: PostgreSQL)
-psql -c "SELECT * FROM schema_migrations ORDER BY applied_at DESC LIMIT 5;"
-
-# Verify row counts match
-psql -c "SELECT COUNT(*) FROM old_table;" 
-psql -c "SELECT COUNT(*) FROM new_table;"
-
-# Dry-run migration script
-python scripts/migrate_data.py --dry-run --limit 100
-```
-
-### Long-running operation resilience
-Any operation that can be interrupted will be interrupted. Build for it:
-- Persist progress to checkpoint (which units are done, which remain)
+### Resilience
+- Upserts instead of blind inserts (idempotent)
+- Track progress via checkpoint (last processed ID)
 - On resume, skip completed work and validate checkpoint integrity
-- Fail fast on invalid or empty input scope — never let an interrupted run produce partial output that overwrites good data
-- Idempotent stages: re-running a completed stage produces the same result
+- Fail fast on invalid or empty input scope
+
+## Plan-Validate-Execute
+
+1. **Plan:** Write migration script. Document before/after schema diff and rollback-for-data strategy.
+2. **Validate:** Dry-run on non-production with production-sized data:
+   ```bash
+   python scripts/migrate_data.py --dry-run --limit 100
+   ```
+3. **Execute:** Take backup. Run migration. Verify:
+   ```bash
+   psql -c "SELECT COUNT(*) FROM old_table;"
+   psql -c "SELECT COUNT(*) FROM new_table;"
+   # Counts must match. Spot-check sample rows.
+   ```
+4. **If counts don't match or spot-checks fail:** Stop. Do not proceed to contract phase. Investigate.
 
 ## Anti-Patterns
 
-- **DROP COLUMN in same deploy** — old code can't find it on rollback.
-- **Single transaction** — long locks cause outages. Batch it.
 - **No dry run** — 10 rows local ≠ 10M rows production.
 - **No data validation** — always verify counts and checksums.
-- **Assuming fast** — estimate from volume. Plan for 10x longer.
-- **No checkpoint** — long-running operations without resume capability restart from scratch on every interruption.
+- **Rollback ignoring data** — code rollback is easy; data rollback requires a separate reverse migration script.

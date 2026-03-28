@@ -1,9 +1,9 @@
 ---
 name: migration-deprecation
 description: >
-  Guides version migrations and contract deprecation across runtime, tests, docs, and
-  consumers. Use for Tier 3 changes that modify contracts with active consumers, version
-  migrations (v1 to v2), or feature deprecation.
+  Plan and execute version migrations and contract deprecation across runtime, tests,
+  docs, and consumers. Activate for Tier 3 changes that modify contracts with active
+  consumers, version migrations (v1 to v2), or feature deprecation.
 ---
 
 # Migration & Deprecation
@@ -36,20 +36,28 @@ description: >
 - [ ] Deprecation warnings removed from code
 - [ ] Migration artifacts cleaned up
 
+## Gotchas
+
+- Deprecation warnings in logs that nobody reads are not deprecation. Add response headers (`Sunset`, `Deprecation`) *and* monitor usage metrics.
+- "Same-change alignment" means runtime, tests, docs, and contracts must all update together. Updating the code but not the docs creates a migration that looks complete but isn't.
+- Dual contracts intended as "temporary" become permanent without an enforced sunset date. Set the date when you create the new path, not later.
+
 ## Patterns
 
-### Safe contract evolution
-1. **Additive changes** — add new alongside old
-2. **Migrate consumers** — update to new contract
-3. **Verify** — confirm all migrated (logs, metrics)
-4. **Remove old** — delete deprecated paths
+### Default: Expand-Contract
+1. **Expand** — add new alongside old (additive, backward compatible)
+2. **Migrate** — update consumers to new contract
+3. **Verify** — confirm all migrated via logs/metrics
+4. **Contract** — remove old after confirmation period
 
-### Deprecation timeline
-1. Mark deprecated in code
-2. Add deprecation warnings in responses/logs
-3. Communicate sunset date
-4. Monitor usage of deprecated path
-5. Remove after sunset + grace period
+This is the safest approach. Use it unless you have a specific reason not to.
+
+## Validation Loop
+
+At each migration phase:
+1. Check consumer usage metrics — are consumers actually moving to the new path?
+2. Verify docs, tests, and contracts all reflect current state
+3. If old path usage isn't declining, investigate before proceeding to removal
 
 ## Anti-Patterns
 
@@ -57,4 +65,3 @@ description: >
 - **Permanent dual contracts** — set sunset date and enforce.
 - **Migration without monitoring** — measure before removing old.
 - **Forgetting docs** — update in same changeset.
-- **No rollback plan** — "we'll figure it out" is not a plan.

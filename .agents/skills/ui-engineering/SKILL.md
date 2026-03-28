@@ -1,10 +1,10 @@
 ---
 name: ui-engineering
 description: >
-  Guides frontend architecture, component design, state management, accessibility,
-  performance, and styling best practices. Covers React, component libraries (MUI,
-  Carbon), editor integrations (CodeMirror, Monaco), layout systems, and real-time
-  UI patterns. Use during UI implementation, code review, or architectural decisions
+  Review frontend architecture, component design, state management, accessibility,
+  performance, and styling. Covers React, component libraries (MUI, Carbon), editor
+  integrations (CodeMirror, Monaco), layout systems, and real-time UI patterns.
+  Activate during UI implementation, code review, or architectural decisions
   involving frontend code.
 ---
 
@@ -16,6 +16,14 @@ description: >
 - **security-baseline:** Input validation, XSS prevention, CSP headers.
 - **api-contracts:** API shape consumed by the frontend.
 - **testing-strategy:** Component and integration testing.
+
+## Gotchas
+
+- `useEffect` for responding to user actions (click → fetch) is wrong — that's an event handler. `useEffect` is for synchronization (prop changed → update external system).
+- `100vh` on mobile includes the browser chrome, causing content to overflow. Use `100dvh` (dynamic viewport height).
+- `React.memo` on a component that receives an inline object/function prop as `style={{ color: 'red' }}` is useless — the object is recreated every render. Hoist or memoize the prop.
+- Keys in loops must be stable IDs, not array indices — using indices causes re-mount bugs when the list is reordered.
+- A WebSocket opened per component instance multiplies connections. Share one connection at the app level and distribute events.
 
 ## Checklist
 

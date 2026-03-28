@@ -1,7 +1,7 @@
 ---
 name: failure-analysis
 description: >
-  Analyzes failure modes, unsafe intermediate states, and partial rollout risks. Use
+  Analyze failure modes, unsafe intermediate states, and partial rollout risks. Activate
   for Tier 3 changes involving distributed systems, async operations, multi-step
   migrations, or any change where partial deployment creates inconsistent state.
 ---
@@ -24,39 +24,34 @@ description: >
 - [ ] Data consistency at each step (no orphans, no partial writes)
 - [ ] Monitoring detects each failure mode
 
+## Gotchas
+
+- Retrying a non-idempotent operation after timeout doesn't recover — it duplicates. If you can't make it idempotent, use a deduplication key.
+- Rolling back code is easy; rolling back data written by the new code is not. If the new code wrote records in a new format, the old code may not be able to read them.
+- "Mixed-version safe" means old code and new code running simultaneously on different instances. If old code fails on a new column or new message format, your canary just became an outage.
+- Circuit breakers that never reset cause permanent degradation. Always include a half-open state.
+
 ## Patterns
 
-### Intermediate state analysis
-For each step of a multi-step change:
+### Intermediate state analysis procedure
+For each step of a multi-step change, answer:
 1. What is the system state after this step?
-2. Is this state valid? Can the system operate here?
-3. What happens if we stop here (crash, timeout)?
-4. Can consumers handle this intermediate state?
+2. Is this state valid? Can the system operate here indefinitely?
+3. What happens if we stop here (crash, timeout, rollback)?
+4. Can all consumers (old and new code) handle this state?
 
-### Failure categories
-- **Crash:** Process dies mid-op. Resumable or must restart?
-- **Timeout:** Does retry duplicate work? Is it idempotent?
-- **Partial:** Some instances updated, others not. Mixed-version safe?
-- **Data inconsistency:** Write succeeded in one store, failed in another.
-- **Cascading:** One failure causes downstream failures. Circuit breakers?
-
-### Safe intermediate states
-Design so every step is valid:
-- New code handles both old and new data formats
-- Old code ignores new fields
-- Missing data has sensible defaults
-- No operation requires atomic cross-service coordination
+If any answer is "no" or "unsure," that step needs a mitigation before proceeding.
 
 ### Pre-mortem questions
-- "What if this ships to half the fleet?"
-- "What if migration fails midway?"
-- "What if we rollback after some data migrated?"
+Ask before deploying:
+- "What if this ships to half the fleet and stays there for a day?"
+- "What if migration fails at step 3 of 5?"
+- "What if we rollback after some data has already been migrated?"
 - "What if a dependency is down during deploy?"
 
 ## Anti-Patterns
 
 - **"It won't fail"** — it will. Plan for it.
-- **Non-idempotent without protection** — retries duplicate data.
+- **Non-idempotent retries** — retries duplicate data. Use dedup keys.
 - **Ignoring mixed-version** — both versions will run simultaneously.
-- **Rollback ignoring data** — code rollback is easy; data rollback is not.
-- **Testing only happy path** — failures are where incidents live.
+- **Testing only the end state** — test the rollout sequence, not just before and after.

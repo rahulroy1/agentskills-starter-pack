@@ -1,13 +1,17 @@
 ---
 name: audit-trail
 description: >
-  Guides integrity verification, manual correction workflows, and change
-  provenance tracking. Use when agents and humans both modify the same
-  artifacts, or when outputs must be auditable.
-related-skills: llm-integration, data-migration
+  Enforce integrity verification, manual correction logging, and change
+  provenance tracking. Activate when agents and humans both modify the same
+  artifacts, when outputs must be auditable, or when derived artifacts must
+  stay in sync with their sources.
 ---
 
 # Audit Trail
+
+## Related Skills
+- **llm-integration:** For validation and transparency when LLM outputs feed into auditable artifacts.
+- **data-migration:** For tracking integrity during schema changes and data transformations.
 
 ## Checklist
 
@@ -36,6 +40,12 @@ related-skills: llm-integration, data-migration
 - [ ] Each data point carries its origin: source reference, extraction method, validation status
 - [ ] Provenance metadata survives through all transformations — not stripped in intermediate steps
 
+## Gotchas
+
+- Scope checks that only log out-of-scope changes (instead of blocking them) will ship unintended mutations. Make scope verification a hard gate, not telemetry.
+- Manual corrections applied as one-off edits vanish when the source is re-processed. Store corrections as replayable patches, not direct edits.
+- Intermediate processing steps that strip provenance metadata make it impossible to trace where a value came from by the time it reaches consumers.
+
 ## Patterns
 
 ### Hash-gated write
@@ -46,8 +56,8 @@ hash_after = hash(artifact)
 log(patch_id, hash_before, hash_after, reason, changes)
 ```
 
-### Manual correction log entry
-```
+### Manual correction log template
+```json
 {
   "id": "patch_001",
   "date": "YYYY-MM-DD",
@@ -66,8 +76,6 @@ Before write: compute `intended_changes` vs `actual_changes`. If `actual - inten
 
 ## Anti-Patterns
 
-- **Telemetry-only scope checks** — reporting out-of-scope changes without blocking them. If you only log it, you will ship it.
-- **Patch without log** — fixing data silently. Future debugging becomes impossible when you cannot tell what the machine produced vs what a human corrected.
-- **Primary-only updates** — patching the main artifact but forgetting to regenerate derived outputs. Consumers receive inconsistent views of the same data.
-- **Provenance stripping** — intermediate processing steps that discard origin metadata. By the time the output reaches consumers, nobody knows where a value came from.
-- **Unreplayable corrections** — manual fixes applied as one-off edits with no record. When the source is re-processed, the same errors reappear and nobody remembers the fix.
+- **Patch without log** — fixing data silently. Future debugging becomes impossible.
+- **Primary-only updates** — patching the main artifact but forgetting derived outputs. Consumers receive inconsistent views.
+- **Unreplayable corrections** — when re-processed, the same errors reappear and nobody remembers the fix.

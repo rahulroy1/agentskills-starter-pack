@@ -1,13 +1,17 @@
 ---
 name: llm-integration
 description: >
-  Guides how to use LLM calls inside automated workflows — when to use them,
-  how to validate their output, and how to maintain transparency. Use when
-  building or reviewing any system that invokes an LLM as a processing step.
-related-skills: audit-trail, testing-strategy
+  Enforce validation, transparency, and safe defaults for LLM calls inside
+  automated workflows. Activate when building or reviewing any system that
+  invokes an LLM as a processing step — covers output validation, prompt
+  design, cost tracking, merge discipline, and fallback behavior.
 ---
 
 # LLM Integration
+
+## Related Skills
+- **audit-trail:** For provenance tracking and integrity verification of LLM-produced artifacts.
+- **testing-strategy:** For testing LLM integration points and validation logic.
 
 ## Checklist
 
@@ -42,9 +46,16 @@ related-skills: audit-trail, testing-strategy
 - [ ] If deterministic extraction and LLM disagree, the union is kept and the conflict is flagged — not silently resolved
 - [ ] Re-running with different model versions or parameters produces auditable diff, not silent drift
 
+## Gotchas
+
+- LLMs return confidently wrong answers on ambiguous prompts. "Figure out the right column" → wrong. "Given this evidence, which column is the INPUT key?" → right. Precision in the prompt is the #1 quality lever.
+- Batching N items in one call is efficient, but you must validate each item independently. One bad item shouldn't reject the whole batch.
+- Re-running with a different model version silently changes outputs. Always log model ID and produce auditable diffs between runs.
+- Token costs compound invisibly. A prompt that costs $0.02 per call costs $200 at 10K calls. Log costs per-call and aggregate per-run.
+
 ## Patterns
 
-### Validate-then-accept
+### Default: Validate-then-accept
 ```
 llm_result = call_llm(prompt)
 validated = validate_against_known_constraints(llm_result)
@@ -54,17 +65,14 @@ else:
     mark_unresolved(reason="failed validation", raw=llm_result)
 ```
 
-### Batch with per-item validation
-Send N items in one call. Validate each returned item independently. Accept valid ones, mark invalid ones unresolved. Never accept or reject the batch as a whole.
+Never skip the validation step. LLM output merged with deterministic baseline as a union — LLM refines, never reduces.
 
 ### Transparency log entry
 Each LLM call logs: `{timestamp, model, tokens_in, tokens_out, latency_ms, cost_estimate, call_site, batch_size}`
 
 ## Anti-Patterns
 
-- **LLM as source of truth** — treating model output as authoritative without validation. The model suggests; the system decides.
-- **Silent acceptance** — skipping validation because "the model is usually right." Usually right is not always right.
-- **Prompt ambiguity** — asking the model to "figure out the right column" instead of "given this evidence, which column is the INPUT key." Ambiguous prompts produce confidently wrong answers.
-- **Suppression by LLM** — letting LLM results replace deterministic baseline instead of merging. Baseline coverage must never regress.
-- **Cost opacity** — running LLM calls without logging token usage. Teams cannot govern what they cannot measure.
-- **One-shot for everything** — using the same prompt complexity and reasoning depth for trivial and complex items alike. Match prompt effort to item complexity.
+- **LLM as source of truth** — the model suggests; the system decides.
+- **Silent acceptance** — skipping validation because "the model is usually right."
+- **Suppression by LLM** — letting LLM results replace deterministic baseline. Baseline coverage must never regress.
+- **Cost opacity** — running LLM calls without logging token usage.
