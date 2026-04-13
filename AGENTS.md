@@ -16,7 +16,7 @@ Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file ref
 
 **Philosophy:** Spec-driven development. Explore → Spec → Implement. Code is the last step.
 
-For concrete before/after examples of common failure modes, see `EXAMPLES.md`.
+For concrete before/after examples of common failure modes, see `.agents/skills/coding-discipline/EXAMPLES.md`.
 
 ---
 

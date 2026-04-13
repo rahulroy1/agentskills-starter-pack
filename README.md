@@ -26,18 +26,18 @@ Five structural gaps account for most agent-related rework:
 
 ### Modular with Agent Skills (When One File Outgrows Itself)
 
-`AGENTS.md` — A lean v8 process layer (~350 lines) that references [Agent Skills](https://agentskills.io) by name. Domain knowledge lives in `.agents/skills/` and loads on demand — dozens of skills available, zero context cost until the task activates them.
+`AGENTS.md` — A lean v8 process layer (~350 lines) that references [Agent Skills](https://agentskills.io) by name. Domain knowledge lives in `.agents/skills/` and loads on demand — dozens of skills available, zero context cost until the task activates them. Supporting examples live beside the relevant skill so the package stays portable.
 
 ```
 your-repo/
 ├── AGENTS.md                              # Process — tiers, workflow, security, permissions
-├── EXAMPLES.md                            # Concrete failure-mode examples for maintainers
 ├── tasks/
 │   ├── todo.md                            # Specs, plans, completion state
 │   └── lessons.md                         # Cross-session memory
 └── .agents/skills/                        # Domain knowledge — loaded on demand
     ├── security-baseline/SKILL.md
     ├── coding-discipline/SKILL.md
+    ├── coding-discipline/EXAMPLES.md
     ├── code-quality/SKILL.md
     ├── testing-strategy/SKILL.md
     ├── api-contracts/SKILL.md

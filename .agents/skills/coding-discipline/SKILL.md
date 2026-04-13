@@ -19,7 +19,7 @@ Use this skill as part of the default implementation-time skill set in `AGENTS.m
 
 - `code-quality` — Default maintainability and readability guardrails used during implementation and review
 - `testing-strategy` — Test-first verification patterns
-- `EXAMPLES.md` — Repo-level before/after examples for maintainers and reviewers
+- `EXAMPLES.md` — Before/after examples kept beside this skill so they travel with the copied package
 
 ## Checklist
 
