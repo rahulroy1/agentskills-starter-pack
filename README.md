@@ -2,6 +2,8 @@
 
 A ready-to-use operational framework for AI coding agents. Drop it into any repo and every agent — Claude Code, Codex CLI, Cursor, Kiro, and others — starts with shared rules, risk awareness, spec discipline, security guardrails, and cross-session memory.
 
+By default, implementation work is constrained by three always-on skills: `security-baseline`, `coding-discipline`, and `code-quality`. That means every code change is expected to be safe, readable, maintainable, and easy for both humans and agents to follow.
+
 Read the full rationale: [The Structure Engineering Orgs Need for AI Coding Agents](https://rahulroyz.medium.com/the-structure-engineering-orgs-need-for-ai-coding-agents-c05d7af6a49e)
 
 ## The Problem
@@ -29,11 +31,13 @@ Five structural gaps account for most agent-related rework:
 ```
 your-repo/
 ├── AGENTS.md                              # Process — tiers, workflow, security, permissions
+├── EXAMPLES.md                            # Concrete failure-mode examples for maintainers
 ├── tasks/
 │   ├── todo.md                            # Specs, plans, completion state
 │   └── lessons.md                         # Cross-session memory
 └── .agents/skills/                        # Domain knowledge — loaded on demand
     ├── security-baseline/SKILL.md
+    ├── coding-discipline/SKILL.md
     ├── code-quality/SKILL.md
     ├── testing-strategy/SKILL.md
     ├── api-contracts/SKILL.md
@@ -74,6 +78,16 @@ Depth scales with tier. Sequence is always: **understand → define success → 
 
 The spec is the source of truth. Implementation is measured against it. If the spec is wrong, fix the spec first, then fix the code.
 
+### Default Implementation Guardrails
+
+Every implementation task activates three default skills before code is written:
+
+- **security-baseline** — security is a hard floor, not a later review pass
+- **coding-discipline** — no hidden assumptions, no speculative features, no drive-by edits
+- **code-quality** — optimize for readability and maintainability first
+
+The intent is explicit: avoid spaghetti code. Prefer straightforward control flow, limited indirection, and code a human can trace end-to-end without reconstructing hidden context.
+
 ### Security as Principle #1
 
 Not a review step — a hard floor. Applies at all tiers, all times. Hard rules on secrets, input validation, injection prevention, authentication/authorization, cryptography, error hygiene, and dependencies. When "just ship it" conflicts with "validate the inputs," security wins.
@@ -107,7 +121,8 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 | Skill | When It Activates |
 |-------|------------------|
 | **security-baseline** | Every change (all tiers) |
-| **code-quality** | Code quality and refactoring review lenses |
+| **coding-discipline** | Every implementation task |
+| **code-quality** | Every implementation task; also code quality and refactoring review lenses |
 | **testing-strategy** | Test coverage review lens |
 | **api-contracts** | Backward compatibility, versioning, sunset policies |
 | **migration-deprecation** | Changing a contract with active consumers |
@@ -127,14 +142,14 @@ Each skill is a folder with a `SKILL.md` containing metadata and instructions. A
 3. **Customize the Tier 3 triggers** for your architecture — the risk tier table works universally, but the architecture-specific triggers should reflect your system boundaries.
 4. **Trim skills you don't need.** Solo service with no migrations? Drop `production-readiness` and `data-migration`. Add them back when complexity grows.
 5. **Migrating from v6?** See `MIGRATION-v6-to-v8.md`.
-6. **Start working.** Your AI coding agent reads `AGENTS.md` automatically, classifies risk, follows the workflow, and activates skills as needed.
+6. **Start working.** Your AI coding agent reads `AGENTS.md` automatically, classifies risk, follows the workflow, activates the default implementation skills, and loads extra skills as needed.
 7. **Log lessons as you go.** When an agent makes a systemic mistake, add it to `tasks/lessons.md`. Every future session benefits.
 
 ## Comparison: Single File vs. Modular
 
 | | Single File (v6) | Modular + Skills (v8) |
 |---|---|---|
-| **Files** | 1 file + tasks/ | 1 file + tasks/ + 13 skills |
+| **Files** | 1 file + tasks/ | 1 file + tasks/ + 14 skills |
 | **Lines** | ~440 | ~350 (process) + skills load on demand |
 | **Domain knowledge** | Inlined | Extracted into `.agents/skills/` |
 | **Context cost** | Full cost upfront | ~50 tokens/skill at startup; full load only when activated |
