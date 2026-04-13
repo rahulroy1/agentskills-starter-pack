@@ -7,13 +7,16 @@ Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file ref
 ### Skill Activation Protocol
 1. **Discovery:** Agent scans `.agents/skills/*/SKILL.md` at session start.
 2. **Metadata load:** Read frontmatter (name, description) only — ~50 tokens per skill.
-3. **Activation triggers:** Tier 3 exploration (identify from §3 table); review phase (per lens §6); explicit reference in AGENTS.md.
-4. **Full load:** Read complete SKILL.md only when activated.
-5. **Missing skill:** Log warning, proceed with AGENTS.md guidance only.
+3. **Default implementation skills:** For any implementation task, activate `security-baseline`, `coding-discipline`, and `code-quality` before writing code, regardless of tier.
+4. **Additional activation triggers:** Tier 3 exploration (identify from §3 table); review phase (per lens §6); explicit reference in AGENTS.md.
+5. **Full load:** Read complete SKILL.md only when activated.
+6. **Missing skill:** Log warning, proceed with AGENTS.md guidance only.
 
 **Goal:** Maximize quality per unit time. Rigor where risk is high, speed where risk is low.
 
 **Philosophy:** Spec-driven development. Explore → Spec → Implement. Code is the last step.
+
+For concrete before/after examples of common failure modes, see `EXAMPLES.md`.
 
 ---
 
@@ -21,12 +24,21 @@ Domain expertise is packaged as Agent Skills in `.agents/skills/`. This file ref
 
 When principles conflict, higher rank wins.
 
-1. **Security and safety** — Non-negotiable hard floor. All tiers, all times. Activate: `security-baseline`
+1. **Security and safety** — Non-negotiable hard floor. All tiers, all times. Activate: `security-baseline`, `coding-discipline`
 2. **Correctness and contract integrity** — Outputs satisfy contracts. Tests pass. Deterministic stays deterministic.
 3. **Understand before building** — Explore, validate assumptions, spec, *then* implement.
-4. **Outcome over ceremony** — Lightest process that satisfies #1, #2, #3.
-5. **Risk-proportional rigor** — Scale process to blast radius.
-6. **No silent assumptions** — State and validate with code, tests, or data.
+4. **Readable and maintainable by default** — Optimize for human comprehension first. Code must be easy for both humans and agents to trace end-to-end.
+5. **Simplicity first** — Minimum code that solves the problem. Nothing speculative.
+6. **Outcome over ceremony** — Lightest process that satisfies #1–#5.
+7. **Risk-proportional rigor** — Scale process to blast radius.
+8. **No silent assumptions** — State and validate with code, tests, or data.
+
+### Assumption Management
+Before implementing any change:
+- State assumptions explicitly. If uncertain, ask — don't guess.
+- If multiple interpretations exist, present them. Don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
 ---
 
@@ -80,6 +92,22 @@ If blast radius turns out larger than classified: **stop → reclassify → appl
 
 Depth scales with tier. Sequence is always: **understand → define success → build.**
 
+### Goal Transformation (All Tiers)
+Before exploring, transform the request into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+- "Make X faster" → "Measure current latency, set target, verify after change"
+
+For multi-step tasks, state a brief plan with verification at each step:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let agents loop independently. Weak criteria ("make it work") require constant clarification.
+
 ### Tier 1
 - **Explore:** Read relevant code. Confirm change is contained.
 - **Spec:** 1-2 sentences — what changes, expected outcome.
@@ -132,6 +160,7 @@ Include in the spec when the change involves these concerns. Activate the releva
 
 | Concern | When to include | Skill | Phase |
 |---------|----------------|-------|-------|
+| Coding discipline | All implementation tasks (overengineering, assumptions, surgical changes) | `coding-discipline` | Implementation |
 | Migration / deprecation | Changing a contract with active consumers | `migration-deprecation` | Exploration |
 | Data migration | Schema, format, or storage changes | `data-migration` | Exploration |
 | Cross-service coordination | Multiple services must update | `production-readiness` | Exploration |
@@ -151,11 +180,18 @@ Implementation is measured against the spec. Verification confirms acceptance cr
 ## 4) Execution Rules
 
 1. Change only what the spec calls for. No scope creep.
-2. Preserve existing conventions and style.
+2. Preserve existing conventions and style. Match quote styles, spacing, naming conventions — even if you'd do it differently.
 3. Simple and readable over clever.
-4. Never expose secrets in code, logs, tests, prompts, or output.
-5. Never perform destructive operations without explicit user confirmation.
-6. Verify write scope before writing. Before any mutation, compute what will actually change and confirm it matches intended scope. Unintended side effects are the #1 source of silent data corruption.
+4. Optimize for readability and maintainability first. New code should be easy for a human reader to understand without reconstructing hidden context.
+5. Avoid spaghetti code. Prefer straightforward control flow, explicit data movement, and limited indirection over cleverness, dense abstractions, or logic spread across too many layers.
+6. Minimum code that solves the problem. No premature abstractions, speculative features, or "flexibility" that wasn't requested. If 200 lines could be 50, rewrite it.
+7. Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify before proceeding.
+8. Never expose secrets in code, logs, tests, prompts, or output.
+9. Never perform destructive operations without explicit user confirmation.
+10. Verify write scope before writing. Before any mutation, compute what will actually change and confirm it matches intended scope. Unintended side effects are the #1 source of silent data corruption.
+11. Don't "improve" adjacent code, comments, formatting, or style that isn't part of the task. Don't add docstrings or type annotations to code you didn't change.
+12. When your changes create orphans (unused imports, variables, functions), clean those up. Don't remove pre-existing dead code unless asked — mention it instead.
+13. The test: every changed line should trace directly to the request.
 
 ---
 
@@ -509,9 +545,9 @@ If gates are waived, explicitly state waiver text + timestamp + risk.
 
 | Task | Tier | Required Skills | Spec Approval? |
 |------|------|-----------------|----------------|
-| Fix typo in error message | 1 | security-baseline | No |
-| Add new API endpoint | 3 | api-contracts, security-baseline | Yes |
-| Refactor shared utility | 2 | code-quality | No |
-| Database schema change | 3 | data-migration, failure-analysis | Yes |
+| Fix typo in error message | 1 | security-baseline, coding-discipline, code-quality | No |
+| Add new API endpoint | 3 | api-contracts, security-baseline, coding-discipline, code-quality | Yes |
+| Refactor shared utility | 2 | security-baseline, coding-discipline, code-quality | No |
+| Database schema change | 3 | data-migration, failure-analysis, security-baseline, coding-discipline, code-quality | Yes |
 | Deploy to production | 3 | deployment-strategy, production-readiness | Yes |
-| New frontend flow with routing + state | 3 | ui-engineering, security-baseline | Yes |
+| New frontend flow with routing + state | 3 | ui-engineering, security-baseline, coding-discipline, code-quality | Yes |

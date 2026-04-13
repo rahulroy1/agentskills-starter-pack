@@ -2,11 +2,14 @@
 name: code-quality
 description: >
   Review code for design quality, clarity, duplication, naming, error handling, and
-  refactoring opportunities. Activate during Tier 2/3 code quality and refactoring
-  review lenses, or when evaluating implementation quality.
+  refactoring opportunities. Activate by default on implementation tasks for
+  readability and maintainability, and during Tier 2/3 code quality and refactoring
+  review lenses.
 ---
 
 # Code Quality & Refactoring
+
+Treat this skill as a default implementation-time guardrail, not only a review lens. Optimize for code that a human can read, trace, and modify safely without reconstructing hidden context.
 
 ## Checklist
 
@@ -16,6 +19,14 @@ description: >
 - [ ] No circular dependencies
 - [ ] Error handling complete — no swallowed exceptions, no silent failures
 - [ ] Naming is precise — describes what, not how
+
+### Simplicity
+- [ ] No premature abstractions (class hierarchies, Strategy/Factory patterns for single use cases)
+- [ ] No speculative features beyond what was requested
+- [ ] No error handling for impossible scenarios
+- [ ] Code length proportional to problem complexity (50 lines beats 200 if both solve the problem)
+- [ ] No "flexibility" or "configurability" that wasn't requested
+- [ ] Abstractions justified by repeated need, not by speculation
 
 ### Complexity
 - [ ] Functions under 30 lines (guideline)
@@ -34,6 +45,9 @@ description: >
 - [ ] Comments explain *why*, never *what*
 - [ ] No magic numbers or strings — named constants
 - [ ] Consistent formatting with project conventions
+- [ ] Control flow easy to trace end-to-end
+- [ ] Indirection limited and justified — no spaghetti wiring across modules/functions
+- [ ] Optimize for human comprehension first, then agent convenience
 
 ## Gotchas
 
@@ -53,6 +67,10 @@ When same inputs must produce same outputs:
 ## Anti-Patterns
 
 - **Premature abstraction** — don't extract until you see the pattern 3 times.
+- **Over-parameterization** — adding `merge`, `validate`, `notify` flags to a function when only the core operation was requested.
+- **Speculative features** — caching, event systems, plugin architectures for single-use code.
 - **Clever code** — if it needs a comment to explain *what* it does, rewrite it.
+- **Spaghetti code** — logic distributed across too many helpers, flags, callbacks, or layers to follow safely.
 - **Drive-by refactoring** — don't refactor unrelated code in the same changeset.
+- **Style drift** — changing quote styles, adding type hints, reformatting whitespace in code you didn't need to touch.
 - **Non-deterministic output** — random IDs, completion-order merges, or unstable sorts that make diffing between runs impossible.
